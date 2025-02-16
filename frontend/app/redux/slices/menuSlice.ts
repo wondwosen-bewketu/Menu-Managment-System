@@ -25,6 +25,13 @@ export const fetchMenus = createAsyncThunk("menu/fetchMenus", async () => {
   return menuApi.fetchMenus();
 });
 
+export const fetchParents = createAsyncThunk(
+  "menu/fetchParents",
+  async () => {
+    return menuApi.fetchParents();
+  }
+);
+
 export const addMenu = createAsyncThunk(
   "menu/addMenu",
   async (menuData: { name: string; parentId?: string }) => {

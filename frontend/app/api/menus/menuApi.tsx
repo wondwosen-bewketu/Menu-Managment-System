@@ -6,6 +6,11 @@ export const menuApi = {
     return response.data;
   },
 
+  async fetchParents() {
+    const response = await apiClient.get("/menu/parents");
+    return response.data;
+  },
+
   async addMenu(menuData: { name: string; parentId?: string }) {
     const response = await apiClient.post("/menu", menuData);
     return response.data;

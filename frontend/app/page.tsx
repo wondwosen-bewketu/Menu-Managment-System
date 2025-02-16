@@ -1,33 +1,56 @@
 "use client";
 
-import MenuTree from "@/components/menuTree";
+import React, { useEffect, useState, useContext } from "react";
+import MenusHeader from "@/app/menusHeader";
 import MenuForm from "@/components/menuForm";
+import MenuDropdown from "@/components/menuDropdown";
+import MenuTree from "@/components/menuTree";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../app/redux/store";
+import { fetchMenus } from "../app/redux/slices/menuSlice";
+import { SidebarContext } from "@/app/layout";
 
 export default function MenusPage() {
-  return (
-    <div className="flex flex-col md:flex-row h-screen w-full bg-[#f8f9fa] p-4">
-      {/* Left Side (Tree + Buttons) */}
-      <div className="w-full md:w-[400px] lg:w-[450px] bg-white">
-        <div className="px-6 py-5">
-          {/* Title + Subheading */}
-          <div className="mb-5">
-            <h1 className="text-[18px] font-semibold text-[#212529]">Menu</h1>
-            <p className="text-[12px] font-medium text-[#868e96] uppercase tracking-wide">
-              SYSTEM MANAGEMENT
-            </p>
-          </div>
+  const dispatch = useDispatch<AppDispatch>();
+  const [selectedMenuId, setSelectedMenuId] = useState<string | null>(null);
+  const { isSidebarOpen } = useContext(SidebarContext)!;
 
-          {/* Tree Container */}
-          <div className="max-h-[calc(100vh-180px)] overflow-y-auto pr-2">
-            <MenuTree />
-          </div>
-        </div>
+  // Fetch menus on component mount
+  useEffect(() => {
+    dispatch(fetchMenus());
+  }, [dispatch]);
+
+  return (
+    <div className="flex flex-col p-4">
+      {/* Header with Sidebar Toggle */}
+      <MenusHeader />
+
+      {/* Dropdown Section */}
+      <div className="mb-8 max-w-xs">
+        <h2 className="text-sm font-medium text-gray-700 mb-2">Menu</h2>
+        <MenuDropdown
+          selectedMenuId={selectedMenuId}
+          onSelect={setSelectedMenuId}
+        />
       </div>
 
-      {/* Right Side (Form) */}
-      <div className="w-full flex items-center justify-center mt-6 md:mt-0 md:ml-6">
-        <div className="w-full max-w-[500px] bg-white p-6">
-          <MenuForm />
+      {/* Content Sections */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Menu Structure Section */}
+        <div className="bg-white rounded-lg p-6">
+          <h3 className="text-lg font-semibold mb-4">Menu Structure</h3>
+          <MenuTree
+            selectedMenuId={selectedMenuId}
+            onSelect={setSelectedMenuId}
+          />
+        </div>
+
+        {/* Menu Form Section */}
+        <div className="bg-white rounded-lg p-6">
+          <MenuForm
+            selectedMenuId={selectedMenuId}
+            onSuccess={() => setSelectedMenuId(null)} // Reset selectedMenuId after creating a parent
+          />
         </div>
       </div>
     </div>

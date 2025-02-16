@@ -1,93 +1,146 @@
 "use client";
 
-import React, { useState } from "react";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "../app/redux/store";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../app/redux/store";
 import { addMenu, fetchMenus } from "../app/redux/slices/menuSlice";
 
-export default function MenuForm() {
+interface MenuFormProps {
+  selectedMenuId: string | null;
+  onSuccess: () => void;
+}
+
+export default function MenuForm({ selectedMenuId, onSuccess }: MenuFormProps) {
   const dispatch = useDispatch<AppDispatch>();
-  const [name, setName] = useState("");
-  const [depth, setDepth] = useState("");
-  const [parentId, setParentId] = useState("");
-  const [systemCode, setSystemCode] = useState("");
-  const [menuId] = useState("56320ee9~6af6~11ed-a7ba-f220afe5e4a9");
+  const { menus } = useSelector((state: RootState) => state.menu);
 
-  const handleSave = async () => {
-    if (!name.trim()) return alert("Menu name is required!");
+  const selectedParent = menus.find((menu) => menu.id === selectedMenuId);
 
-    await dispatch(
-      addMenu({
-        name,
-        depth,
-        parentId: parentId || undefined,
-        systemCode,
-      })
-    );
+  const [formData, setFormData] = useState({
+    parentMenuId: "",
+    depth: "0",
+    parentName: "",
+    name: "",
+  });
 
-    await dispatch(fetchMenus());
-    setName("");
-    setDepth("");
-    setParentId("");
-    setSystemCode("");
+  useEffect(() => {
+    if (selectedParent) {
+      setFormData({
+        parentMenuId: selectedParent.id,
+        depth: String(selectedParent.depth + 1),
+        parentName: selectedParent.name,
+        name: "",
+      });
+    } else {
+      setFormData({
+        parentMenuId: "",
+        depth: "0",
+        parentName: "",
+        name: "",
+      });
+    }
+  }, [selectedParent]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formData.name.trim()) {
+      alert("Please enter a name for the menu item.");
+      return;
+    }
+
+    try {
+      await dispatch(
+        addMenu({
+          name: formData.name,
+          depth: parseInt(formData.depth, 10),
+          parentId: formData.parentMenuId || undefined,
+        })
+      ).unwrap();
+
+      await dispatch(fetchMenus());
+
+      // Reset the form
+      setFormData((prev) => ({ ...prev, name: "" }));
+
+      // Reset the selectedMenuId if creating a parent menu
+      if (!formData.parentMenuId) {
+        onSuccess(); // Call the onSuccess callback to reset selectedMenuId
+      }
+    } catch (error) {
+      console.error("Failed to add menu:", error);
+    }
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-[#f8f9fa]  p-6">
-      <div className="mb-5">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Menu ID
-        </label>
-        <input
-          type="text"
-          readOnly
-          value={menuId}
-          className="w-full px-4 py-2 bg-gray-100 rounded-md  text-gray-100 cursor-not-allowed"
-        />
-      </div>
+    <div className="bg-white rounded-lg p-6">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Parent Menu ID (read-only) */}
+        {formData.parentMenuId && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Menu ID
+            </label>
+            <input
+              type="text"
+              value={formData.parentMenuId}
+              readOnly
+              className="w-3/4 px-4 py-2 rounded-md bg-gray-100 text-gray-700"
+            />
+          </div>
+        )}
 
-      <div className="mb-5">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Depth
-        </label>
-        <input
-          type="number"
-          value={depth}
-          onChange={(e) => setDepth(e.target.value)}
-          className="w-3/4 px-4 py-4 bg-gray-400 rounded-xl text-gray-700 cursor-not-allowed"
-        />
-      </div>
-      <div className="mb-5">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Parent Data
-        </label>
-        <input
-          type="text"
-          value={parentId}
-          onChange={(e) => setParentId(e.target.value)}
-          className="w-3/4 px-4 py-4 bg-gray-100 rounded-xl text-gray-700 cursor-not-allowed"
-        />
-
-        {/* Name and System Code */}
+        {/* Depth (read-only) */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Name
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Depth
+          </label>
+          <input
+            type="number"
+            value={formData.depth}
+            readOnly
+            className="w-2/4 px-4 py-4 bg-gray-100 rounded-xl text-gray-700"
+          />
+        </div>
+
+        {/* Parent Name (read-only) */}
+        {formData.parentName && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Parent Name
+            </label>
+            <input
+              type="text"
+              value={formData.parentName}
+              readOnly
+              className="w-2/4 px-4 py-4 bg-gray-100 rounded-xl text-gray-700"
+            />
+          </div>
+        )}
+
+        {/* Menu Name */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {formData.parentMenuId ? "Child Name" : "Menu Name"}
           </label>
           <input
             type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-3/4 px-4 py-4 bg-gray-100 rounded-xl text-gray-700 cursor-not-allowed"
+            value={formData.name}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, name: e.target.value }))
+            }
+            className="w-2/4 px-4 py-4 bg-gray-100 rounded-xl text-gray-700"
           />
         </div>
-      </div>
 
-      <button
-        onClick={handleSave}
-        className="w-3/4 px-4 py-4 rounded-3xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-      >
-        Save
-      </button>
+        {/* Save Button */}
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+        >
+          Save
+        </button>
+      </form>
     </div>
   );
 }

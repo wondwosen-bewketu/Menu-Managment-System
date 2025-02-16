@@ -1,50 +1,79 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo } from "react";
+import Link from "next/link";
+import { useState, useMemo } from "react";
+import { FaBars, FaThList, FaUsers, FaTrophy } from "react-icons/fa";
 
-export default function Sidebar() {
+interface SidebarProps {
+  isCollapsed: boolean;
+  onToggle: () => void;
+}
+
+export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
+  const [expanded, setExpanded] = useState(false);
 
-  // Example navigation items
+  // Define navigation items
   const navItems = useMemo(
     () => [
-      { label: "Systems", href: "#" },
-      { label: "System Code", href: "#" },
-      { label: "Properties", href: "#" },
-      { label: "Menus", href: "/menus" }, // We'll navigate to /menus
-      { label: "API Link", href: "#" },
-      { label: "Users & Group", href: "#" },
-      { label: "Competition", href: "#" },
+      
     ],
     []
   );
 
   return (
-    <aside className="w-64 bg-[#1B1E23] text-white flex flex-col">
-      {/* Logo / Title */}
-      <div className="flex items-center justify-center h-16 border-b border-gray-700">
-        <span className="text-xl font-bold">LOIT</span>
+    <aside
+      className={`h-screen ${isCollapsed ? "w-16" : "w-60"} 
+      bg-[#000033] text-white flex flex-col transition-all duration-300`}
+    >
+      {/* Sidebar Header */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-700">
+        <span className="text-lg font-bold tracking-wide">
+          {!isCollapsed && "CLOIT"}
+        </span>
+        <button onClick={onToggle} className="text-white">
+          <FaBars />
+        </button>
       </div>
 
-      {/* Nav Items */}
-      <nav className="flex-1 overflow-auto px-3 py-4">
-        <ul className="space-y-1">
-          {navItems.map((item) => {
+      {/* Navigation */}
+      <nav className="flex-1 px-2 py-4">
+        <ul className="space-y-2">
+          {navItems.map((item, index) => {
             const isActive = pathname === item.href;
+            const hasSubItems = !!item.subItems;
+
             return (
-              <li key={item.label}>
-                <Link
-                  href={item.href}
-                  className={`block rounded-md px-3 py-2 text-sm font-medium ${
-                    isActive
-                      ? "bg-gray-700 text-white"
-                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                  }`}
+              <li key={index}>
+                {/* Parent Item */}
+                <div
+                  onClick={() => hasSubItems && setExpanded(!expanded)}
+                  className={`flex items-center gap-3 px-4 py-2 rounded-md cursor-pointer transition-all 
+                    ${
+                      isActive ? "bg-[#76FA7B] text-black" : "hover:bg-gray-700"
+                    }
+                  `}
                 >
-                  {item.label}
-                </Link>
+                  {item.icon}
+                  {!isCollapsed && item.label}
+                </div>
+
+                {/* Sub Items (if any) */}
+                {hasSubItems && expanded && (
+                  <ul className="ml-6 mt-1 space-y-1">
+                    {item.subItems?.map((subItem, subIndex) => (
+                      <li key={subIndex}>
+                        <Link
+                          href={subItem.href}
+                          className="block px-4 py-1 text-sm text-gray-300 hover:text-white"
+                        >
+                          {subItem.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </li>
             );
           })}
