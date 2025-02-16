@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { MenuModule } from './menu/menu.module';
+import { MenuModule } from './modules/menu/menu.module';
 
 @Module({
   imports: [MenuModule],
