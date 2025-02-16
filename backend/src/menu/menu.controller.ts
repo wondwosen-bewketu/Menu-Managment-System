@@ -27,13 +27,17 @@ export class MenuController {
     return this.menuService.findAll();
   }
 
+  @Get('parents')
+  async fetchParentMenus(): Promise<MenuResponseDto[]> {
+    return this.menuService.fetchParentMenus();
+  }
   @Get(':id')
   async findOne(
     @Param('id') id: string,
     @Query('depth') depth: string,
   ): Promise<MenuResponseDto> {
     const depthValue = depth ? parseInt(depth, 10) : 2;
-    return this.menuService.findOne(+id, depthValue);
+    return this.menuService.findOne(id, depthValue);
   }
 
   @Patch(':id')
@@ -41,11 +45,11 @@ export class MenuController {
     @Param('id') id: string,
     @Body() updateMenuDto: UpdateMenuDto,
   ): Promise<MenuResponseDto> {
-    return this.menuService.update(+id, updateMenuDto);
+    return this.menuService.update(id, updateMenuDto);
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<MenuResponseDto> {
-    return this.menuService.remove(+id);
+    return this.menuService.remove(id);
   }
 }

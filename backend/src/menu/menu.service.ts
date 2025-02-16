@@ -16,7 +16,10 @@ export class MenuService {
     return this.menuRepository.findAll();
   }
 
-  async findOne(id: number, depth: number): Promise<MenuResponseDto> {
+  async fetchParentMenus(): Promise<MenuResponseDto[]> {
+    return this.menuRepository.findParents();
+  }
+  async findOne(id: string, depth: number): Promise<MenuResponseDto> {
     const menu = await this.menuRepository.findOne(id, depth);
     if (!menu) {
       throw new NotFoundException(`Menu with id ${id} not found`);
@@ -25,7 +28,7 @@ export class MenuService {
   }
 
   async update(
-    id: number,
+    id: string,
     updateMenuDto: UpdateMenuDto,
   ): Promise<MenuResponseDto> {
     try {
@@ -35,7 +38,7 @@ export class MenuService {
     }
   }
 
-  async remove(id: number): Promise<MenuResponseDto> {
+  async remove(id: string): Promise<MenuResponseDto> {
     try {
       return await this.menuRepository.remove(id);
     } catch (error) {

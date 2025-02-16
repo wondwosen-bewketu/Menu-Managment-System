@@ -1,9 +1,9 @@
 -- CreateTable
 CREATE TABLE "Menu" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "depth" INTEGER NOT NULL,
-    "parentId" INTEGER,
+    "parentId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
