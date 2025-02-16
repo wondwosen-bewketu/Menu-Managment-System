@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { menuApi } from "../../api";
 
 interface MenuItem {
+  depth: number;
   id: string;
   name: string;
   parentId?: string;

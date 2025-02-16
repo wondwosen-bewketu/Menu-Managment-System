@@ -53,7 +53,6 @@ export default function MenuForm({ selectedMenuId, onSuccess }: MenuFormProps) {
       await dispatch(
         addMenu({
           name: formData.name,
-          depth: parseInt(formData.depth, 10),
           parentId: formData.parentMenuId || undefined,
         })
       ).unwrap();
@@ -70,8 +69,8 @@ export default function MenuForm({ selectedMenuId, onSuccess }: MenuFormProps) {
     } catch (error) {
       console.error("Failed to add menu:", error);
     }
-  };
 
+  };
   return (
     <div className="bg-white rounded-lg p-6">
       <form onSubmit={handleSubmit} className="space-y-4">

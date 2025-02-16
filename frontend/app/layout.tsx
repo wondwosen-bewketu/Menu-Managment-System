@@ -1,15 +1,11 @@
 "use client";
 
 import "./globals.css";
-import { ReactNode, createContext, useState } from "react";
+import { ReactNode, useState } from "react";
 import { Provider } from "react-redux";
 import { store } from "../app/redux";
 import Sidebar from "@/components/sidebar";
-
-export const SidebarContext = createContext<{
-  isSidebarOpen: boolean;
-  toggleSidebar: () => void;
-} | null>(null);
+import { SidebarContext } from "../app/context/SidebarContext";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);

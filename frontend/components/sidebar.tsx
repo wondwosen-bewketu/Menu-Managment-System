@@ -15,12 +15,13 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const [expanded, setExpanded] = useState(false);
 
   // Define navigation items
-  const navItems = useMemo(() => [], []);
+  const navItems = useMemo(() => [], []); // Add your navigation items here
 
   return (
     <aside
-      className={`h-screen ${isCollapsed ? "w-16" : "w-60"} 
-      bg-[#000033] text-white flex flex-col transition-all duration-300`}
+      className={`h-screen ${
+        isCollapsed ? "w-16" : "w-60"
+      } bg-[#000033] text-white flex flex-col transition-all duration-300`}
     >
       {/* Sidebar Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-700">

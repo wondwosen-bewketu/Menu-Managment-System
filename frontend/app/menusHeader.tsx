@@ -2,10 +2,10 @@
 
 import React, { useContext } from "react";
 import { MdMenu } from "react-icons/md";
-import { SidebarContext } from "@/app/layout";
+import { SidebarContext } from "../app/context/SidebarContext";
 
 export default function MenusHeader() {
-  const { toggleSidebar } = useContext(SidebarContext)!;
+  const { toggleSidebar } = useContext(SidebarContext);
 
   return (
     <header className="flex items-center justify-between mb-6">
