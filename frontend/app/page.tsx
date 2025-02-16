@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
 import MenusHeader from "@/app/menusHeader";
 import MenuForm from "@/components/menuForm";
 import MenuDropdown from "@/components/menuDropdown";
@@ -8,12 +8,10 @@ import MenuTree from "@/components/menuTree";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "../app/redux/store";
 import { fetchMenus } from "../app/redux/slices/menuSlice";
-import { SidebarContext } from "@/app/layout";
 
 export default function MenusPage() {
   const dispatch = useDispatch<AppDispatch>();
   const [selectedMenuId, setSelectedMenuId] = useState<string | null>(null);
-  const { isSidebarOpen } = useContext(SidebarContext)!;
 
   // Fetch menus on component mount
   useEffect(() => {
