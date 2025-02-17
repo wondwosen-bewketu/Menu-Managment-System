@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState, addMenu, fetchMenus } from "../app/redux";
+import { toast } from "react-toastify";
 
 interface MenuFormProps {
   selectedMenuId: string | null;
@@ -44,7 +45,7 @@ export default function MenuForm({ selectedMenuId, onSuccess }: MenuFormProps) {
     e.preventDefault();
 
     if (!formData.name.trim()) {
-      alert("Please enter a name for the menu item.");
+      toast.error("Please enter a name for the menu item.");
       return;
     }
 
@@ -65,8 +66,11 @@ export default function MenuForm({ selectedMenuId, onSuccess }: MenuFormProps) {
       if (!formData.parentMenuId) {
         onSuccess(); // Call the onSuccess callback to reset selectedMenuId
       }
+      
+      toast.success("Menu added successfully!");
     } catch (error) {
       console.error("Failed to add menu:", error);
+      toast.error("Failed to add menu. Please try again.");
     }
   };
   return (
