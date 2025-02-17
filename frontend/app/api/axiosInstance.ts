@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_BASE_URL = "https://menu-managment-system-8a9y.onrender.com/api"; // Change if needed
+// Get the backend URL from environment variables
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
