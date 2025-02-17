@@ -16,8 +16,15 @@ export const menuApi = {
     return response.data;
   },
 
+  // Changed to use URL parameter instead of query string
   async deleteMenu(id: string) {
-    await apiClient.delete(`/menu?id=${id}`);
+    await apiClient.delete(`/menu/${id}`);
     return id;
+  },
+
+  // Changed to use URL parameter instead of query string
+  async updateMenu(id: string, menuData: { name: string; parentId?: string }) {
+    const response = await apiClient.put(`/menu/${id}`, menuData);
+    return response.data;
   },
 };

@@ -2,7 +2,7 @@
 
 import React, { useContext } from "react";
 import { MdMenu } from "react-icons/md";
-import { SidebarContext } from "../app/context/SidebarContext";
+import { SidebarContext } from "@/app/context/SidebarContext";
 
 export default function MenusHeader() {
   const { toggleSidebar } = useContext(SidebarContext);

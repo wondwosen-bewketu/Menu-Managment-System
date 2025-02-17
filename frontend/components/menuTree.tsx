@@ -1,109 +1,35 @@
+// src/components/MenuTree.tsx
 "use client";
+
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../app/redux";
-import { fetchMenus } from "../app/redux";
-import { ChevronRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
-
-interface MenuItem {
-  id: string;
-  name: string;
-  parentId?: string | null;
-  depth: number;
-  children?: MenuItem[];
-}
-
-const buildTree = (menuItems: MenuItem[], selectedParentId: string | null) => {
-  const menuMap: Record<string, MenuItem> = {};
-  const tree: MenuItem[] = [];
-
-  menuItems.forEach((item) => {
-    menuMap[item.id] = { ...item, children: [] };
-  });
-
-  menuItems.forEach((item) => {
-    if (item.parentId && menuMap[item.parentId]) {
-      menuMap[item.parentId].children?.push(menuMap[item.id]);
-    } else {
-      tree.push(menuMap[item.id]);
-    }
-  });
-
-  if (selectedParentId) {
-    return tree.filter(
-      (item) =>
-        item.id === selectedParentId || item.parentId === selectedParentId
-    );
-  }
-
-  return tree;
-};
+import {
+  AppDispatch,
+  RootState,
+  fetchMenus,
+  deleteMenu,
+  updateMenu,
+  addMenu,
+} from "../app/redux";
+import { buildTree } from "../app/utils";
+import MenuTreeItem from "./MenuTreeItem";
+import { MenuItem } from "../app/types";
 
 interface MenuTreeProps {
   selectedMenuId: string | null;
   onSelect: (id: string) => void;
 }
 
-function renderTree(
-  nodes: MenuItem[],
-  expandedMap: Record<string, boolean>,
-  toggleNode: (id: string) => void,
-  handleSelect: (id: string) => void,
-  selectedMenuId: string | null
-) {
-  return (
-    <ul className="ml-4">
-      {nodes.map((node) => {
-        const hasChildren = node.children && node.children.length > 0;
-        const isOpen = expandedMap[node.id] || false;
-        const isSelected = node.id === selectedMenuId;
-
-        return (
-          <li key={node.id} className="mb-1">
-            <div className="flex items-center space-x-1">
-              {hasChildren && (
-                <button
-                  onClick={() => toggleNode(node.id)}
-                  className="p-1 rounded-md hover:bg-gray-100"
-                >
-                  {isOpen ? (
-                    <ChevronDownIcon className="h-4 w-4 text-gray-600" />
-                  ) : (
-                    <ChevronRightIcon className="h-4 w-4 text-gray-600" />
-                  )}
-                </button>
-              )}
-              <div
-                className={`flex-1 cursor-pointer p-1 rounded-md ${
-                  isSelected ? "bg-blue-100 text-blue-700" : "hover:bg-gray-100"
-                }`}
-                onClick={() => handleSelect(node.id)}
-              >
-                <span className="text-sm">{node.name}</span>
-              </div>
-            </div>
-            {hasChildren && isOpen && (
-              <div className="ml-4 mt-1 pl-2">
-                {renderTree(
-                  node.children || [],
-                  expandedMap,
-                  toggleNode,
-                  handleSelect,
-                  selectedMenuId
-                )}
-              </div>
-            )}
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
-export default function MenuTree({ selectedMenuId, onSelect }: MenuTreeProps) {
+const MenuTree: React.FC<MenuTreeProps> = ({ selectedMenuId, onSelect }) => {
   const dispatch = useDispatch<AppDispatch>();
   const { menus, loading } = useSelector((state: RootState) => state.menu);
+
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editedName, setEditedName] = useState("");
+  // State for inline "add child" mode
+  const [addingChildId, setAddingChildId] = useState<string | null>(null);
+  const [newChildName, setNewChildName] = useState("");
 
   useEffect(() => {
     dispatch(fetchMenus());
@@ -134,9 +60,47 @@ export default function MenuTree({ selectedMenuId, onSelect }: MenuTreeProps) {
     setExpanded((prev) => ({ ...prev, [id]: true }));
   };
 
+  const handleDelete = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this menu?")) {
+      dispatch(deleteMenu(id));
+    }
+  };
+
+  const startEditing = (id: string, name: string) => {
+    setEditingId(id);
+    setEditedName(name);
+  };
+
+  const handleUpdate = (id: string) => {
+    if (editedName.trim()) {
+      dispatch(updateMenu({ id, name: editedName }));
+      setEditingId(null);
+      setEditedName("");
+    }
+  };
+
+  const startAddChild = (id: string) => {
+    setAddingChildId(id);
+    setNewChildName("");
+    setExpanded((prev) => ({ ...prev, [id]: true }));
+  };
+
+  const cancelAddChild = () => {
+    setAddingChildId(null);
+    setNewChildName("");
+  };
+
+  const handleAddChild = (parentId: string) => {
+    if (newChildName.trim()) {
+      dispatch(addMenu({ name: newChildName, parentId }));
+      setAddingChildId(null);
+      setNewChildName("");
+    }
+  };
+
   const expandAll = () => {
     const allExpanded: Record<string, boolean> = {};
-    menus.forEach((menu) => {
+    menus.forEach((menu: MenuItem) => {
       allExpanded[menu.id] = true;
     });
     setExpanded(allExpanded);
@@ -149,27 +113,51 @@ export default function MenuTree({ selectedMenuId, onSelect }: MenuTreeProps) {
   const menuTree = buildTree(menus, null);
 
   return (
-    <div className="p-4 text-gray-800 bg-white">
+    <div className="p-4 text-gray-800 bg-white rounded-lg shadow-sm">
       <div className="flex space-x-3 mb-3">
         <button
           onClick={expandAll}
-          className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md transition"
+          className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md transition text-sm"
         >
           Expand All
         </button>
         <button
           onClick={collapseAll}
-          className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md transition"
+          className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md transition text-sm"
         >
           Collapse All
         </button>
       </div>
-
       {loading ? (
-        <p>Loading...</p>
+        <p className="text-gray-500">Loading menus...</p>
       ) : (
-        renderTree(menuTree, expanded, toggleNode, handleSelect, selectedMenuId)
+        <ul className="ml-4">
+          {menuTree.map((node) => (
+            <MenuTreeItem
+              key={node.id}
+              node={node}
+              expandedMap={expanded}
+              toggleNode={toggleNode}
+              handleSelect={handleSelect}
+              selectedMenuId={selectedMenuId}
+              handleDelete={handleDelete}
+              editingId={editingId}
+              editedName={editedName}
+              setEditedName={setEditedName}
+              handleUpdate={handleUpdate}
+              startEditing={startEditing}
+              addingChildId={addingChildId}
+              newChildName={newChildName}
+              setNewChildName={setNewChildName}
+              startAddChild={startAddChild}
+              cancelAddChild={cancelAddChild}
+              handleAddChild={handleAddChild}
+            />
+          ))}
+        </ul>
       )}
     </div>
   );
-}
+};
+
+export default MenuTree;

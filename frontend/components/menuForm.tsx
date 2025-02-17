@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../app/redux/store";
-import { addMenu, fetchMenus } from "../app/redux/slices/menuSlice";
+import { AppDispatch, RootState, addMenu, fetchMenus } from "../app/redux";
 
 interface MenuFormProps {
   selectedMenuId: string | null;
@@ -69,7 +68,6 @@ export default function MenuForm({ selectedMenuId, onSuccess }: MenuFormProps) {
     } catch (error) {
       console.error("Failed to add menu:", error);
     }
-
   };
   return (
     <div className="bg-white rounded-lg p-6">

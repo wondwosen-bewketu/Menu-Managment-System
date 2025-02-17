@@ -1,90 +1,135 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import Link from "next/link";
-import { useState, useMemo } from "react";
-import { FaBars } from "react-icons/fa";
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/redux";
+import { MenuItem } from "@/app/types";
+import {
+  FaChevronRight,
+  FaChevronDown,
+  FaCog,
+  FaCube,
+  FaList,
+  FaUsers,
+  FaTrophy,
+  FaCircle,
+} from "react-icons/fa";
 
 interface SidebarProps {
   isCollapsed: boolean;
   onToggle: () => void;
 }
 
-export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
-  const pathname = usePathname();
-  const [expanded, setExpanded] = useState(false);
+const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
+  const { menus } = useSelector((state: RootState) => state.menu);
+  const parentMenus = menus.filter((menu: MenuItem) => !menu.parentId);
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>(
+    {}
+  );
 
-  // Define navigation items
-  const navItems = useMemo(() => [], []); // Add your navigation items here
+  const toggleExpand = (id: string) => {
+    setExpandedMenus((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  const getIconForMenu = (name: string) => {
+    switch (name.toLowerCase()) {
+      case "systems":
+        return <FaCube className="text-teal-400" />;
+      case "properties":
+        return <FaCog className="text-sky-400" />;
+      case "menus":
+        return <FaList className="text-cyan-400" />;
+      case "users & group":
+        return <FaUsers className="text-indigo-400" />;
+      case "competition":
+        return <FaTrophy className="text-purple-400" />;
+      default:
+        return <FaCube className="text-teal-400" />;
+    }
+  };
 
   return (
-    <aside
-      className={`h-screen ${
-        isCollapsed ? "w-16" : "w-60"
-      } bg-[#000033] text-white flex flex-col transition-all duration-300`}
+    <div
+      className={`bg-gradient-to-b from-slate-800 to-slate-900 h-full
+        ${isCollapsed ? "w-16" : "w-64"} p-4 transition-all duration-300
+        border-r border-slate-700 shadow-xl`}
     >
       {/* Sidebar Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-700">
-        <span className="text-lg font-bold tracking-wide">
-          {!isCollapsed && "CLOIT"}
-        </span>
-        <button onClick={onToggle} className="text-white">
-          <FaBars />
+      <div className="flex items-center justify-between mb-8">
+        <h1
+          className={`text-xl font-bold ${isCollapsed ? "hidden" : "block"} 
+          bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent`}
+        >
+          CLOIT
+        </h1>
+        <button
+          onClick={onToggle}
+          className="p-1.5 hover:bg-slate-700 rounded-lg transition-colors"
+        >
+          {isCollapsed ? (
+            <span className="text-slate-300 text-sm">◀</span>
+          ) : (
+            <span className="text-slate-300 text-sm">▶</span>
+          )}
         </button>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-2 py-4">
-        <ul className="space-y-2">
-          {navItems.map(
-            (
-              item: {
-                href: string;
-                icon: React.ReactNode;
-                label: string;
-                subItems?: { href: string; label: string }[];
-              },
-              index
-            ) => {
-              const isActive = pathname === item.href;
-              const hasSubItems = !!item.subItems;
+      {/* Menu Items */}
+      <div className="space-y-2">
+        {parentMenus.map((parent) => (
+          <div key={parent.id}>
+            {/* Parent Menu */}
+            <div
+              className={`flex items-center justify-between p-3 rounded-lg
+                cursor-pointer transition-all hover:bg-slate-700/50
+                ${expandedMenus[parent.id] ? "bg-slate-700/30" : ""}`}
+              onClick={() => toggleExpand(parent.id)}
+            >
+              <div className="flex items-center gap-3">
+                {getIconForMenu(parent.name)}
+                <span
+                  className={`text-slate-200 font-medium 
+                  ${isCollapsed ? "hidden" : "block"}`}
+                >
+                  {parent.name}
+                </span>
+              </div>
+              {!isCollapsed &&
+                (expandedMenus[parent.id] ? (
+                  <FaChevronDown className="text-slate-400 text-sm" />
+                ) : (
+                  <FaChevronRight className="text-slate-400 text-sm" />
+                ))}
+            </div>
 
-              return (
-                <li key={index}>
-                  {/* Parent Item */}
+            {/* Child Menus */}
+            <div
+              className={`ml-2 pl-6 border-l-2 border-slate-700/50
+                ${expandedMenus[parent.id] ? "block" : "hidden"}
+                ${isCollapsed ? "hidden" : ""}`}
+            >
+              {menus
+                .filter((menu: MenuItem) => menu.parentId === parent.id)
+                .map((child) => (
                   <div
-                    onClick={() => hasSubItems && setExpanded(!expanded)}
-                    className={`flex items-center gap-3 px-4 py-2 rounded-md cursor-pointer transition-all 
-                    ${
-                      isActive ? "bg-[#76FA7B] text-black" : "hover:bg-gray-700"
-                    }
-                  `}
+                    key={child.id}
+                    className="flex items-center gap-3 p-2 rounded-md
+                      text-slate-300 hover:bg-slate-700/30 cursor-pointer
+                      transition-colors text-sm"
                   >
-                    {item.icon}
-                    {!isCollapsed && item.label}
+                    <FaCircle className="text-teal-400/60 text-[6px]" />
+                    <span>{child.name}</span>
                   </div>
-
-                  {/* Sub Items (if any) */}
-                  {hasSubItems && expanded && (
-                    <ul className="ml-6 mt-1 space-y-1">
-                      {item.subItems?.map((subItem, subIndex) => (
-                        <li key={subIndex}>
-                          <Link
-                            href={subItem.href}
-                            className="block px-4 py-1 text-sm text-gray-300 hover:text-white"
-                          >
-                            {subItem.label}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-              );
-            }
-          )}
-        </ul>
-      </nav>
-    </aside>
+                ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
-}
+};
+
+export default Sidebar;
